@@ -1,78 +1,173 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import personService from "../services/phonebook";
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
+import personService from '../services/phonebook'
+import Input from '../layout/Input'
 
 function Editar() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [nome, setNome] = useState("");
-  const [numero, setNumero] = useState("");
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [nome, setNome] = useState('')
+  const [numero, setNumero] = useState('')
+  const [email, setEmail] = useState('')
+  const [endereco, setEndereco] = useState('')
+  const [dataNascimento, setDataNascimento] = useState('')
+  const [foto, setFoto] = useState(null)
+  const [fotoPreview, setFotoPreview] = useState(null) // Adicionando estado para a prévia da imagem
 
   useEffect(() => {
     personService.getOne(id).then((response) => {
-      setNome(response.data.nome);
-      setNumero(response.data.numero);
-    });
-  }, [id]);
+      setNome(response.data.nome)
+      setNumero(response.data.numero)
+      setEmail(response.data.email)
+      setEndereco(response.data.endereco)
+
+      // Formate a data no formato dd/mm/yyyy
+      const formattedDate = new Date(
+        response.data.data_nascimento
+      ).toLocaleDateString('pt-BR')
+      setDataNascimento(formattedDate)
+
+      setFoto(response.data.foto)
+
+    })
+  }, [id])
 
   const handleNomeChange = (event) => {
-    setNome(event.target.value);
-  };
+    // console.log(event.target.value);
+    setNome(event.target.value)
+  }
 
   const handleNumeroChange = (event) => {
-    setNumero(event.target.value);
-  };
+    // console.log(event.target.value);
+    setNumero(event.target.value)
+  }
+
+  const handleEmailChange = (event) => {
+    // console.log(event.target.value);
+    setEmail(event.target.value)
+  }
+
+  const handleEnderecoChange = (event) => {
+    // console.log(event.target.value);
+    setEndereco(event.target.value)
+  }
+
+  const handleDataNascimentoChange = (event) => {
+    // console.log(event.target.value);
+    setDataNascimento(event.target.value)
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    setFoto(file)
+
+    // Exibindo uma prévia da imagem
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setFotoPreview(e.target.result)
+      }
+      reader.readAsDataURL(file)
+    } else {
+      setFotoPreview(null)
+    }
+  }
 
   const editPerson = async (event) => {
-    event.preventDefault();
+    event.preventDefault()
 
     const personObject = {
-      nome: nome,
-      numero: numero,
-    };
+      nome,
+      numero,
+      email,
+      endereco,
+      data_nascimento: dataNascimento,
+      foto,
+    }
 
-    await personService.update(id, personObject);
+    await personService.update(id, personObject)
 
-    navigate("/");
-  };
+    navigate('/')
+  }
 
   const cancel = () => {
-    navigate("/");
-  };
+    navigate('/')
+  }
 
   return (
-    <div className="container">
+    <div className='container'>
       <h2>Edição de Dados</h2>
-      <form onSubmit={editPerson}>
-        <div className="mb-3">
-          <label htmlFor="nome" className="form-label">
-            Nome:
-          </label>
+      <hr />
+      <form onSubmit={editPerson} className='bg-success-subtle p-2'>
+        <Input
+          textLabel='nome'
+          text='Nome'
+          inputType='text'
+          textPlaceholder='Digite o seu nome...'
+          handleChange={handleNomeChange}
+          isPhone={false}
+          defaultValue={nome}
+        />
+        <Input
+          textLabel='telefone'
+          text='Telefone'
+          inputType='text'
+          textPlaceholder='Digite o seu telefone...'
+          handleChange={handleNumeroChange}
+          isPhone={false}
+          defaultValue={numero}
+        />
+        <Input
+          textLabel='email'
+          text='Email'
+          inputType='email'
+          textPlaceholder='Digite o seu email...'
+          handleChange={handleEmailChange}
+          isPhone={false}
+          defaultValue={email}
+        />
+        <Input
+          textLabel='endereco'
+          text='Endereço'
+          inputType='text'
+          textPlaceholder='Digite o seu endereço...'
+          handleChange={handleEnderecoChange}
+          isPhone={false}
+          defaultValue={endereco}
+        />
+        <Input
+          textLabel='data_nascimento'
+          text='Data de nascimento'
+          inputType='text'
+          textPlaceholder=''
+          handleChange={handleDataNascimentoChange}
+          isPhone={false}
+          defaultValue={dataNascimento}
+        />
+        <div className='form-group'>
+          <label htmlFor='foto'>Foto: </label>
           <input
-            type="text"
-            className="form-control"
-            defaultValue={nome}
-            onChange={handleNomeChange}
+            type='file'
+            id='foto'
+            className='form-control-file m-2'
+            onChange={handleFileChange}
           />
+          {fotoPreview && (
+            <img
+              src={fotoPreview}
+              alt='Preview'
+              style={{ maxWidth: '200px' }}
+            />
+          )}
         </div>
-        <div className="mb-3">
-          <label htmlFor="numero" className="form-label">
-            Número:
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            defaultValue={numero}
-            onChange={handleNumeroChange}
-          />
-        </div>
-        <button className="btn btn-secondary">Editar</button>
-        <button className="btn btn-warning mx-3" onClick={cancel}>
+        <button className='btn btn-success m-2'>Editar</button>
+        <button className='btn btn-danger m-2' onClick={() => cancel}>
           Cancelar
         </button>
       </form>
     </div>
-  );
+  )
 }
 
-export default Editar;
+export default Editar

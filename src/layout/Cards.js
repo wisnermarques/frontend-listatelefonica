@@ -3,13 +3,43 @@ import { format } from 'date-fns'
 import ptBR from 'date-fns/locale/pt-BR'
 
 import './Cards.css'
+import { useState } from 'react'
 
-function Cards({ persons }) {
+function Cards({ persons, handleDelete }) {
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [taskIdToDelete, setTaskIdToDelete] = useState(null)
+
+  const openConfirmation = (id) => {
+    setTaskIdToDelete(id)
+    setShowConfirmation(true)
+  }
+
+  const closeConfirmation = () => {
+    setTaskIdToDelete(null)
+    setShowConfirmation(false)
+  }
+
   const urlBase = 'http://localhost:3001/images/'
+
+  const confirmDelete = (id) => {
+    if (taskIdToDelete !== null) {
+      handleDelete(taskIdToDelete)
+      closeConfirmation()
+    }
+  }
+
+  if (persons.length === 0) {
+    return (
+      <div>
+        <p>Não existem dados a serem exibidos!</p>
+      </div>
+    )
+  }
+
   return (
     <div className='row'>
       {persons.map((person) => (
-        <div className='col-sm-6' key={person.id}>
+        <div className='col-sm-4' key={person.id}>
           <div className='card m-2'>
             <img
               src={urlBase + person.foto}
@@ -40,13 +70,26 @@ function Cards({ persons }) {
               <Link to={`/${person.id}`} className='btn btn-success'>
                 <i className='bi bi-pencil'></i> Editar
               </Link>
-              <button className='btn btn-danger mx-2'>
+              <button
+                className='btn btn-danger mx-2'
+                onClick={() => openConfirmation(person.id)}
+              >
                 <i className='bi bi-trash3'></i> Excluir
               </button>
             </div>
           </div>
         </div>
       ))}
+
+      {showConfirmation && (
+        <div className='modal'>
+          <div className='modal-content'>
+            <h4>Realmente deseja excluir?</h4>
+            <button onClick={confirmDelete}>Sim</button>
+            <button onClick={closeConfirmation}>Cancelar</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

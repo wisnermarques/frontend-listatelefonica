@@ -112,11 +112,11 @@ function Home() {
     setShowForm(!showForm)
   }
 
-  // const handleDelete = async (id) => {
-  //   await personService.remove(id)
-  //   // Após a exclusão, atualize a lista de persons chamando fetchData novamente
-  //   fetchData()
-  // }
+  const handleDelete = async (id) => {
+    await personService.remove(id)
+    // Após a exclusão, atualize a lista de persons chamando fetchData novamente
+    fetchData()
+  }
 
   return (
     <div className='container'>
@@ -197,7 +197,7 @@ function Home() {
           ) : (
             <div>
               <hr />
-              <Cards persons={persons} />
+              <Cards persons={persons} handleDelete={handleDelete} />
             </div>
           )}
         </>
