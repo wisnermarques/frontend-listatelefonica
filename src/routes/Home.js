@@ -1,0 +1,187 @@
+import { useEffect, useState } from "react";
+
+import personService from "../services/phonebook";
+
+import Table from "../layout/Table";
+import Input from "../layout/Input";
+
+function Home() {
+  const [persons, setPersons] = useState([]);
+  const [nome, setNome] = useState("");
+  const [numero, setNumero] = useState("");
+  const [email, setEmail] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
+  const [foto, setFoto] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchData(); // Carrega os dados iniciais
+  }, []);
+
+  const fetchData = () => {
+    personService
+      .getAll()
+      .then((response) => {
+        setPersons(response.data);
+        setShowForm(false);
+      })
+      .catch((error) => {
+        if (error.response) {
+          // O servidor respondeu com um status de erro
+          console.error("Erro na requisição:", error.response);
+        } else if (error.request) {
+          // A requisição foi feita, mas não houve resposta do servidor
+          console.error("Não foi possível se conectar ao servidor.");
+          setError(
+            "Não foi possível se conectar ao servidor. Verifique sua conexão de rede."
+          );
+        } else {
+          // Algo aconteceu na configuração da requisição que causou o erro
+          console.error("Erro na configuração da requisição:", error.message);
+        }
+      });
+  };
+
+  const addPerson = async (event) => {
+    event.preventDefault();
+    const personObject = {
+      nome,
+      numero,
+      email,
+      endereco,
+      dataNascimento,
+      foto
+    };
+
+    await personService.create(personObject);
+
+    setNome("");
+    setNumero("");
+
+    // Após a criação, atualize a lista de persons chamando fetchData novamente
+    fetchData();
+  };
+
+  const handleNomeChange = (event) => {
+    // console.log(event.target.value);
+    setNome(event.target.value);
+  };
+
+  const handleNumeroChange = (event) => {
+    // console.log(event.target.value);
+    setNumero(event.target.value);
+  };
+
+  const handleEmailChange = (event) => {
+    // console.log(event.target.value);
+    setEmail(event.target.value);
+  };
+
+  const handleEnderecoChange = (event) => {
+    // console.log(event.target.value);
+    setEndereco(event.target.value);
+  };
+
+  const handleDataNascimentoChange = (event) => {
+    // console.log(event.target.value);
+    setDataNascimento(event.target.value);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setFoto(file);
+  };
+
+  const toggleForm = () => {
+    setShowForm(!showForm);
+  };
+
+  const handleDelete = async (id) => {
+    await personService.remove(id);
+    // Após a exclusão, atualize a lista de persons chamando fetchData novamente
+    fetchData();
+  };
+
+  return (
+    <div className="container">
+      <h2 className="mt-2">Listar e Cadastrar Pessoas</h2>
+      {error ? (
+        <p className="alert alert-warning" role="alert">
+          {error}
+        </p>
+      ) : (
+        <>
+          <button onClick={toggleForm} className="btn btn-success">
+            {showForm ? "Voltar para a Tabela" : "Cadastrar Pessoa"}
+          </button>
+
+          {showForm ? (
+            <>
+              <hr />
+              <form onSubmit={addPerson} className="bg-success-subtle p-2">
+                <Input
+                  textLabel="nome"
+                  text="Nome"
+                  inputType="text"
+                  textPlaceholder="Digite o seu nome..."
+                  handleChange={handleNomeChange}
+                  isPhone={false}
+                />
+                <Input
+                  textLabel="telefone"
+                  text="Telefone"
+                  inputType="text"
+                  textPlaceholder="Digite o seu telefone..."
+                  handleChange={handleNumeroChange}
+                  isPhone={true}
+                />
+                <Input
+                  textLabel="email"
+                  text="Email"
+                  inputType="email"
+                  textPlaceholder="Digite o seu email..."
+                  handleChange={handleEmailChange}
+                  isPhone={false}
+                />
+                <Input
+                  textLabel="endereco"
+                  text="Endereço"
+                  inputType="text"
+                  textPlaceholder="Digite o seu endereço..."
+                  handleChange={handleEnderecoChange}
+                  isPhone={false}
+                />
+                <Input
+                  textLabel="data_nascimento"
+                  text="Data de nascimento"
+                  inputType="date"
+                  textPlaceholder=""
+                  handleChange={handleDataNascimentoChange}
+                  isPhone={false}
+                />
+                <Input
+                  textLabel="foto"
+                  text="Foto"
+                  inputType="file"
+                  handleChange={handleFileChange}
+                  isPhone={false}
+                />
+
+                <button className="btn btn-success mt-4">Cadastrar</button>
+              </form>
+            </>
+          ) : (
+            <div>
+              <hr />
+              <Table persons={persons} handleDelete={handleDelete} />
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+export default Home;
