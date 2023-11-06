@@ -13,7 +13,8 @@ function Editar() {
   const [endereco, setEndereco] = useState('')
   const [dataNascimento, setDataNascimento] = useState('')
   const [foto, setFoto] = useState(null)
-  const [fotoPreview, setFotoPreview] = useState(null) // Adicionando estado para a prévia da imagem
+  const [fotoPreview, setFotoPreview] = useState(null)
+  const [fotoAntiga, setFotoAntiga] = useState(null) // Adicionando estado para a prévia da imagem
 
   useEffect(() => {
     personService.getOne(id).then((response) => {
@@ -29,9 +30,9 @@ function Editar() {
       setDataNascimento(formattedDate)
 
       setFoto(response.data.foto)
-
+      setFotoAntiga('http://localhost:3001/images/' + foto)
     })
-  }, [id])
+  }, [id, foto])
 
   const handleNomeChange = (event) => {
     // console.log(event.target.value);
@@ -77,14 +78,28 @@ function Editar() {
   const editPerson = async (event) => {
     event.preventDefault()
 
+    // String no formato "dd/mm/aaaa"
+    const dataString = dataNascimento
+
+    // Divida a string em dia, mês e ano
+    const partesData = dataString.split('/')
+    const dia = partesData[0] // 06
+    const mes = partesData[1]// 10 representa novembro (0-based)
+    const ano = partesData[2] // 2023
+
+    // Coloca a data no formato "aaaa/mm/dd"
+    const data = ano + '/' + mes + '/' + dia
+
     const personObject = {
       nome,
       numero,
       email,
       endereco,
-      data_nascimento: dataNascimento,
+      dataNascimento: data,
       foto,
     }
+
+    console.log(personObject)
 
     await personService.update(id, personObject)
 
@@ -153,16 +168,18 @@ function Editar() {
             className='form-control-file m-2'
             onChange={handleFileChange}
           />
-          {fotoPreview && (
+          {fotoPreview ? (
             <img
               src={fotoPreview}
               alt='Preview'
               style={{ maxWidth: '200px' }}
             />
-          )}
+          ) : fotoAntiga ? (
+            <img src={fotoAntiga} alt='Preview' style={{ maxWidth: '200px' }} />
+          ) : null}
         </div>
         <button className='btn btn-success m-2'>Editar</button>
-        <button className='btn btn-danger m-2' onClick={() => cancel}>
+        <button className='btn btn-danger m-2' onClick={() => cancel()}>
           Cancelar
         </button>
       </form>
